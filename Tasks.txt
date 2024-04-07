@@ -1,0 +1,37 @@
+Tasks:
+
+Frontend
+***May want to do Figma mockups for everything first
+1. Code the Home Page
+2. Code the Research Page
+3. Code the Trade Page
+3. Code User Login
+4. Play around with UI / UX
+5. Play around with typescript
+
+Backend
+1. Figure out how to do async tasks / writes / etc.
+2. Plan out database schemas and access patterns (what data needs to be stored?)
+3. Build the /home endpoint
+    a. Returns balance, stocks, cash info
+4. Build the /trade endpoints
+    a. GET /trade/{order_id}
+    b. POST /trade ---ticker, quantity, range
+    c. DELETE /trade/{order_id} --for cancelling orders
+5. Build the /tickers endpoints
+*** May want to split this into multiple endpoints for faster data retrieval
+    a. GET /ticker/{ticker_symbol}
+    b. GET /ticker/{ticker_symbol}/price
+    c. GET /ticker/{ticker_symbol}/summary
+6. Determine if we want to store any stock info for faster retrieval....
+
+Database
+*** We may need to think about what to choose here
+1. Try to use dynamoDB local
+2. See where to go based on #1
+3. Initial database thoughts:
+    a. User
+    b. stock_info (ticker, last_price, price_history, financials, description, etc.)
+    c. user_cash (user balance object)
+    d. user_stock (user stock object) (ticker, units, bought_price_basis, last_price_basis)
+    e. user_order (user placing an order object) (ticker, units, min_price, max_price, status, expiration)
