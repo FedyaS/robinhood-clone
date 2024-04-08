@@ -9,11 +9,7 @@
     },
     "SK": {
       "type": "string",
-      "pattern": "^STOCK#AAPL#[0-9T:-]+#[A-Z]{8}$"
-    },
-    "id": {
-      "type": "string",
-      "pattern": "^[A-Z]{8}$"
+      "pattern": "^STOCK#AAPL$"
     },
     "user_id": {
         "type": "string",
@@ -27,12 +23,11 @@
       "type": "integer",
       "description": "Price in cents"
     },
-    "amount": {
+    "num_shares": {
       "type": "integer"
     },
     "datetime": {
-      "type": "string",
-      "format": "date-time"
+      "type": "string"
     },
     "type": {
         "type": "string",

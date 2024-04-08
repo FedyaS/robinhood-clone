@@ -6,36 +6,39 @@ def get_ticker_data(ticker):
         return {}
 
     try:
-        # Fetch the stock information
         stock = yf.Ticker(ticker)
-
-        # Get historical prices for the last 3 months
         hist = stock.history(period="3mo")
 
-        # Simplify the historical data for return
-        his_prices = hist.reset_index()[["Date", "Open", "High", "Low", "Close", "Volume"]].to_dict(orient='records')
+        # Convert price data to cents and simplify for return
+        his_prices = []
+        for _, row in hist.reset_index().iterrows():
+            his_prices.append({
+                "Date": row['Date'].date().isoformat(),
+                "Open": int(row['Open'] * 100),
+                "High": int(row['High'] * 100),
+                "Low": int(row['Low'] * 100),
+                "Close": int(row['Close'] * 100),
+                "Volume": row['Volume']
+            })
 
-        # Fetch the last price (the close price of the last available date)
-        last_price = hist.iloc[-1]['Close']
+        last_price = int(hist.iloc[-1]['Close'] * 100)
 
-        # Get additional financial information
         info = stock.info
 
-        # Prepare financials data, you may adjust the fields according to your requirements
         financials = {
-            "Market Cap": info.get('marketCap'),
-            "PE Ratio": info.get('trailingPE'),
-            "EPS": info.get('trailingEps'),
-            "Sector": info.get('sector'),
-            "Full Time Employees": info.get('fullTimeEmployees'),
+            "Market Cap": info.get('marketCap', 0) // 100,  # Assuming market cap is already in cents
+            "PE Ratio": int(info.get('trailingPE', 0) * 100) if info.get('trailingPE') is not None else None,
+            "EPS": int(info.get('trailingEps', 0) * 100) if info.get('trailingEps') is not None else None,
+            "Sector": info.get('sector', ''),
+            "Full Time Employees": info.get('fullTimeEmployees', 0),
         }
 
         return {
             "history_price": his_prices,
             "last_price": last_price,
-            "last_price_time": time.time(),
-            "name": info.get('shortName'),
-            "description": info.get('longBusinessSummary'),
+            "last_price_time": int(time.time()),
+            "name": info.get('shortName', ''),
+            "description": info.get('longBusinessSummary', ''),
             "financials": financials
         }
     except Exception as e:
@@ -52,10 +55,11 @@ def get_ticker_price(ticker):
 
         # Fetch the latest price using history method
         hist = stock.history(period="1d")
+        last_price = int(hist.iloc[-1]['Close'] * 100) if not hist.empty else "N/A"
 
         # Return the close price of the last available trading day
         return {
-            "last_price": hist.iloc[-1]['Close'] if not hist.empty else "N/A",
+            "last_price": last_price,
             "time": time.time()
         }
     except Exception as e:

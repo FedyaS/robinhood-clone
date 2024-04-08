@@ -1,7 +1,10 @@
 import random
 import string
+import time
 import boto3
 from boto3.dynamodb.conditions import Key
+from boto3.dynamodb.conditions import Attr
+from decimal import Decimal
 
 # Configure DynamoDB client to use DynamoDB Local
 dynamodb = boto3.resource(
@@ -70,6 +73,29 @@ def get_stock_order(user_id, stock_order_id):
         return item
     else:
         return None
+
+def get_stock(user_id, ticker):
+    try:
+        # Construct the primary key pattern for user and stock
+        pk_value = f"USER#{user_id}"
+        sk_value = f"STOCK#{ticker}"
+        
+        # Query to find the stock item
+        response = table.query(
+            KeyConditionExpression='PK = :pk and SK = :sk)',
+            ExpressionAttributeValues={
+                ':pk': pk_value,
+                ':sk': sk_value
+            }
+        )
+        
+        item = response.get('Item', None)
+        return item
+    
+    except ClientError as e:
+        print(f"An error occurred: {e.response['Error']['Message']}")
+        return {"exists": False, "error": e.response['Error']['Message']}
+
 
 
 def query_user_stock(user_id):
@@ -159,4 +185,98 @@ def put_order(user_id, order_id, ticker, num_shares, max_price, cash_allotted):
         return None
 
     return order
+
+def cancel_order(user_id, order_id, cash_allotted):
+    # Add the cash_allotted back into the user object cash field
+    # Update the order object status to CANCELLED
+
+    return
+
+
+def finish_order(user_id, order_id, returned_cash, ticker, last_price, num_shares):
+    user_pk = f"USER#{user_id}"
+    order_sk = f"STOCK_ORDER#{order_id}"
+
+    # Prepare the update expression for the USER item
+    update_user = {
+        'Update': {
+            'TableName': 'FullDB',
+            'Key': {
+                'PK': user_pk,
+                'SK': user_pk
+            },
+            'UpdateExpression': 'SET cash = cash + :cashReturned',
+            'ExpressionAttributeValues': {
+                ':cashReturned': Decimal(returned_cash)
+            }
+        }
+    }
+
+    # Prepare the update expression for the STOCK_ORDER item
+    update_stock_order = {
+        'Update': {
+            'TableName': 'FullDB',
+            'Key': {
+                'PK': user_pk,
+                'SK': order_sk
+            },
+            'UpdateExpression': 'SET status = :statusCompleted',
+            'ExpressionAttributeValues': {
+                ':statusCompleted': 'COMPLETED'
+            }
+        }
+    }
+
+    operations = [update_user, update_stock_order]
+
+    current_stock = get_stock(user_id, ticker)
+    current_stock = get_stock(user_id, ticker)
+    if current_stock:
+        # If the stock exists, prepare an update operation
+        update_stock = {
+            'Update': {
+                'TableName': 'FullDB',
+                'Key': {
+                    'PK': f"USER#{user_id}",
+                    'SK': f"STOCK#{ticker}"
+                },
+                'UpdateExpression': 'SET amount = amount + :numShares, purchase_price = :lastPrice',
+                'ExpressionAttributeValues': {
+                    ':numShares': Decimal(num_shares),  # Assuming num_shares is defined
+                    ':lastPrice': Decimal(last_price)  # Assuming last_price is defined
+                },
+                'ReturnValues': 'UPDATED_NEW'
+            }
+        }
+        operations.append(update_stock)
+    else:
+        # If the stock does not exist, prepare a create operation
+        create_stock = {
+            'Put': {
+                'TableName': 'FullDB',
+                'Item': {
+                    'PK': f"USER#{user_id}",
+                    'SK': f"STOCK#{ticker}",
+                    'user_id': user_id,
+                    'ticker': ticker,
+                    'purchase_price': Decimal(last_price),  # Assuming last_price is defined
+                    'amount': Decimal(num_shares),  # Assuming num_shares is defined
+                    'datetime': time.time(),  # Use the current datetime in an appropriate format
+                    'type': 'STOCK'
+                }
+            }
+        }
+        operations.append(create_stock)
+
+
+    try:
+        dynamodb.transact_write_items(
+            TransactItems=operations
+        )
+        print("Transaction successful.")
+    except Exception as e:
+        print(f"Transaction failed: {e}")
+
+# Example of how to call the function:
+# finish_order('USERID123', 'ORDERID123', 10000, 'AAPL', 150, 10)
 

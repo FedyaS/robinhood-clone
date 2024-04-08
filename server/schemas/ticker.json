@@ -1,0 +1,86 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Ticker",
+  "type": "object",
+  "properties": {
+    "history_price": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "Date": {
+            "type": "string",
+            "description": "The date of the trading session in YYYY-MM-DD format."
+          },
+          "Open": {
+            "type": "integer",
+            "description": "The opening price of the stock for the trading session, in cents."
+          },
+          "High": {
+            "type": "integer",
+            "description": "The highest price of the stock during the trading session, in cents."
+          },
+          "Low": {
+            "type": "integer",
+            "description": "The lowest price of the stock during the trading session, in cents."
+          },
+          "Close": {
+            "type": "integer",
+            "description": "The closing price of the stock at the end of the trading session, in cents."
+          },
+          "Volume": {
+            "type": "integer",
+            "description": "The total number of shares traded during the trading session."
+          }
+        },
+        "required": ["Date", "Open", "High", "Low", "Close", "Volume"]
+      },
+      "description": "An array of historical price data objects."
+    },
+    "last_price": {
+      "type": "integer",
+      "description": "The last available closing price of the stock, in cents."
+    },
+    "last_price_time": {
+      "type": "integer",
+      "description": "The UNIX timestamp when the last price was fetched or relevant."
+    },
+    "name": {
+      "type": "string",
+      "description": "The short name of the company."
+    },
+    "description": {
+      "type": "string",
+      "description": "A long business summary of the company."
+    },
+    "financials": {
+      "type": "object",
+      "properties": {
+        "Market Cap": {
+          "type": "integer",
+          "description": "The market capitalization of the company, in cents."
+        },
+        "PE Ratio": {
+          "type": "integer",
+          "description": "The trailing price-to-earnings ratio of the company, multiplied by 100 for precision."
+        },
+        "EPS": {
+          "type": "integer",
+          "description": "The trailing earnings per share of the company, in cents."
+        },
+        "Sector": {
+          "type": "string",
+          "description": "The sector to which the company belongs."
+        },
+        "Full Time Employees": {
+          "type": "integer",
+          "description": "The number of full-time employees at the company."
+        }
+      },
+      "required": ["Market Cap", "Sector", "Full Time Employees"],
+      "description": "An object containing key financial metrics of the company."
+    }
+  },
+  "required": ["history_price", "last_price", "last_price_time", "name", "description", "financials"],
+  "description": "A schema describing the structure of the stock data."
+}
