@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Stock Order",
+  "type": "object",
+  "properties": {
+    "PK": {
+      "type": "string",
+      "pattern": "^USER#[A-Z]{8}$"
+    },
+    "SK": {
+      "type": "string",
+      "pattern": "^STOCK_ORDER#[A-Z]{8}$"
+    },
+    "id": {
+      "type": "string",
+        "pattern": "^[A-Z]{8}$"
+    },
+    "ticker": {
+      "type": "string",
+      "enum": ["AAPL"]
+    },
+    "num_shares": {
+      "type": "integer"
+    },
+    "max_price_per_share": {
+      "type": "integer",
+      "description": "Maximum price in cents"
+    },
+    "purchase_price_per_share": {
+      "type": "integer",
+      "description": "Maximum price in cents"
+    },
+    "cash_allotted": {
+      "type": "integer",
+      "description": "Amount in cents"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["PROCESSING", "COMPLETED", "CANCELLED"]
+    },
+    "type": {
+        "type": "string",
+        "const": "STOCK_ORDER"
+    }
+  },
+  "required": ["PK", "SK", "id", "ticker", "num_shares", "max_price_per_share", "cash_allotted", "status", "type"]
+}

@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "User",
+  "type": "object",
+  "properties": {
+    "PK": {
+      "type": "string",
+      "pattern": "^USER#[A-Z]{8}$"
+    },
+    "SK": {
+      "type": "string",
+      "pattern": "^USER#[A-Z]{8}$"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Z]{8}$"
+    },
+    "name": {
+      "type": "string"
+    },
+    "cash": {
+      "type": "integer",
+      "description": "Amount in cents"
+    },
+    "type": {
+        "type": "string",
+        "const": "USER"
+    }
+  },
+  "required": ["PK", "SK", "id", "name", "cash", "type"]
+}

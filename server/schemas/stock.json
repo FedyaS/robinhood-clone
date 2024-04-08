@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Stock",
+  "type": "object",
+  "properties": {
+    "PK": {
+      "type": "string",
+      "pattern": "^USER#[A-Z]{8}$"
+    },
+    "SK": {
+      "type": "string",
+      "pattern": "^STOCK#AAPL#[0-9T:-]+#[A-Z]{8}$"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Z]{8}$"
+    },
+    "user_id": {
+        "type": "string",
+        "pattern": "^[A-Z]{8}$"
+    },
+    "ticker": {
+      "type": "string",
+      "enum": ["AAPL"]
+    },
+    "purchase_price": {
+      "type": "integer",
+      "description": "Price in cents"
+    },
+    "amount": {
+      "type": "integer"
+    },
+    "datetime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "type": {
+        "type": "string",
+        "const": "STOCK"
+    }
+  },
+  "required": ["PK", "SK", "id", "user_id", "ticker", "purchase_price", "amount", "datetime", "type"]
+}
