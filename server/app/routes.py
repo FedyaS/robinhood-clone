@@ -1,7 +1,8 @@
 from flask import Blueprint, jsonify, request
 from flask_cors import CORS
 import time
-import ticker_data
+import app.ticker_data as ticker_data
+import app.db_client as db_client
 import threading
 
 main = Blueprint('main', __name__)
@@ -18,12 +19,12 @@ def create_order_instance_db():
     return {}
 
 # Dummy function to simulate background task
-def place_order(ticker):
+def place_order(user_id, order_id, ticker, num_shares, max_price, cash_allotted):
     # Simulate some time-consuming task
     # In real-world scenario, replace this with your actual function
     print(f"Processing {ticker} in the background...")
-    with open('db.txt', 'a') as db_file:
-        db_file.write(ticker + '\n')
+    time.sleep(3)
+    print(f"Finished processing order ${ticker}")
 
 @main.route('/')
 def index():
@@ -37,13 +38,12 @@ def home():
     
     user_id = request.args.get('user_id', default='123456', type=str)
     
-    user = get_single_entity_from_db(user_id)
-    stocks = query_user_stock_info_from_db(user_id)
+    user = db_client.get_user()
+    stocks = db_client.query_user_stock(user_id)
 
     return jsonify({
         'user': user,
-        'cash': stocks[0],
-        'stocks': stocks[1:]
+        'stocks': stocks
     })
 
 # Gets all info about specified ticker
@@ -73,7 +73,25 @@ def ticker_price():
 def order():
     if request.method == 'POST':
         data = request.json  # Assuming JSON data is sent with the POST request
-        order_id = create_order_instance_db(data)
+        
+        user_id = data.args.get('user_id', default=None, type=str)
+        ticker = data.args.get('ticker', default=None, type=str)
+        num_shares = data.args.get('num_shares', default=0, type=int)
+        max_price = data.args.get('max_price', default=0.0, type=float)
+        cash_allotted = data.args.get('cash_allotted', default=0.0, type=float)
+
+        if not all(var is not None for var in [user_id, ticker, num_shares, max_price, cash_allotted]):
+            return jsonify({"error": "Some data missing in your order request. Please try again."}), 400
+        
+        user = db_client.get_user(user_id)
+        cash_bal = user.get('cash', default=0, type=int)
+        if not cash_bal or cash_bal < cash_allotted:
+            return jsonify({"error": "Insufficient Funds - NSF."}), 401
+
+
+        # Place the Order
+        order_id = db_client.generate_id()
+        order = db_client.put_order(user_id, order_id, ticker, num_shares, max_price, cash_allotted)
         background_thread = threading.Thread(target=place_order, args=(order_id,data,))
         background_thread.start()
         
@@ -84,19 +102,10 @@ def order():
         order_id = request.args.get('order_id', None)
         
         if order_id:
-            order = get_single_entity_from_db(order_id)
+            order = db_client.get_stock_order(user_id, order_id)
             return jsonify(order)        
         
         else:
             return jsonify({"error": "Order ID is required for tracking."}), 400
-
-@main.route('/dashboard', methods=['GET'])
-def dashboard():
-    print("k lok")
-    return jsonify({
-        "id": 123,
-        "info": "Here is your dashboard",
-        "time": int(time.time())  # Current time since epoch in seconds
-    })
 
 
