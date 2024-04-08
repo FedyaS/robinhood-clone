@@ -15,24 +15,23 @@ function App() {
               <Link to="/">Home</Link>
             </li>
             <li>
-              <Link to="/dashboard">Dashboard</Link>
-            </li>
-            <li>
               <Link to="/ticker">Tickers</Link>
             </li>
-                        <li>
-              <Link to="/research">Research</Link>
+            <li>
+              <Link to="/place-order">Place Stock Order</Link>
+            </li>
+            <li>
+              <Link to="/view-order">View Order Status</Link>
             </li>
 
           </ul>
         </nav>
 
         <Routes>
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/" element={<Dashboard />} />
           <Route path="/ticker" element={<Ticker />} />
-          <Route path="/" element={<Home />} />
-                    <Route path="/research" element={<StockChart />} />
-
+          <Route path="/place-order" element={<StockChart />} />
+          <Route path="/view-order" element={<StockChart />} />
         </Routes>
       </div>
     </Router>
