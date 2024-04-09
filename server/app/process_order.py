@@ -1,6 +1,6 @@
 import time
-import ticker_data as ticker_data
-import db_client
+import app.ticker_data as ticker_data
+import app.db_client as db_client
 
 def process_order(user_id, order_id, ticker, num_shares, max_price, cash_allotted):
     print(f"Processing Order {order_id} in the background...")

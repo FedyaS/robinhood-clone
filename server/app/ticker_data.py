@@ -58,10 +58,7 @@ def get_ticker_price(ticker):
         last_price = int(hist.iloc[-1]['Close'] * 100) if not hist.empty else "N/A"
 
         # Return the close price of the last available trading day
-        return {
-            "last_price": last_price,
-            "time": time.time()
-        }
+        return last_price
     except Exception as e:
         print(f"Failed to fetch data for {ticker}: {e}")
         return {}

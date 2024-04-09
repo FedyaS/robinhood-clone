@@ -81,20 +81,19 @@ def get_stock(user_id, ticker):
         sk_value = f"STOCK#{ticker}"
         
         # Query to find the stock item
-        response = table.query(
-            KeyConditionExpression='PK = :pk and SK = :sk)',
-            ExpressionAttributeValues={
-                ':pk': pk_value,
-                ':sk': sk_value
+        response = response = table.get_item(
+            Key={
+                'PK': pk_value,
+                'SK': sk_value
             }
         )
         
         item = response.get('Item', None)
         return item
     
-    except ClientError as e:
-        print(f"An error occurred: {e.response['Error']['Message']}")
-        return {"exists": False, "error": e.response['Error']['Message']}
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return {"exists": False, "error": {e}}
 
 
 
@@ -167,8 +166,8 @@ def put_order(user_id, order_id, ticker, num_shares, max_price, cash_allotted):
                             'PK': {'S': user_pk},
                             'SK': {'S': user_pk}
                         },
-                        'UpdateExpression': 'SET cash_balance = cash_balance - :ca',
-                        'ConditionExpression': 'cash_balance >= :ca',
+                        'UpdateExpression': 'SET cash = cash - :ca',
+                        'ConditionExpression': 'cash >= :ca',
                         'ExpressionAttributeValues': {
                             ':ca': {'N': str(cash_allotted)}
                         },
@@ -194,6 +193,7 @@ def cancel_order(user_id, order_id, cash_allotted):
 
 
 def finish_order(user_id, order_id, returned_cash, ticker, last_price, num_shares):
+    client = dynamodb.meta.client
     user_pk = f"USER#{user_id}"
     order_sk = f"STOCK_ORDER#{order_id}"
 
@@ -229,7 +229,6 @@ def finish_order(user_id, order_id, returned_cash, ticker, last_price, num_share
 
     operations = [update_user, update_stock_order]
 
-    current_stock = get_stock(user_id, ticker)
     current_stock = get_stock(user_id, ticker)
     if current_stock:
         # If the stock exists, prepare an update operation
@@ -270,7 +269,7 @@ def finish_order(user_id, order_id, returned_cash, ticker, last_price, num_share
 
 
     try:
-        dynamodb.transact_write_items(
+        client.transact_write_items(
             TransactItems=operations
         )
         print("Transaction successful.")

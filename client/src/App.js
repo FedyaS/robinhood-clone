@@ -5,6 +5,7 @@ import Dashboard from './components/Dashboard'; // Assuming Dashboard.js is in t
 import Ticker from './components/Ticker'
 import StockChart from './components/Research'
 import UserProfile from './components/Home'
+import StockOrderPage from './components/PlaceOrder'
 
 function App() {
   return (
@@ -31,7 +32,7 @@ function App() {
         <Routes>
           <Route path="/" element={<UserProfile />} />
           <Route path="/ticker" element={<Ticker />} />
-          <Route path="/place-order" element={<StockChart />} />
+          <Route path="/place-order" element={<StockOrderPage />} />
           <Route path="/view-order" element={<StockChart />} />
         </Routes>
       </div>
