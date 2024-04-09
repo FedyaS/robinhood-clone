@@ -1,13 +1,13 @@
-import { useState, createContext, useContext, Children } from "react";
+import { useState, createContext, useContext } from "react";
 
 const UserContext = createContext();
 
-const UserContextProvider = ({Children}) => {
+const UserContextProvider = ({children}) => {
     const [userID, setUserID] = useState('ABCDEFGH')
 
     return (
-		<UserContext.Provider value={userID}>
-			{Children}
+		<UserContext.Provider value={{userID}}>
+			{children}
 		</UserContext.Provider>
     )
 };

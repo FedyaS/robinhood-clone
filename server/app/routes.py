@@ -94,9 +94,10 @@ def order():
     # GET info about an existing order
     elif request.method == 'GET':
         print('/order GET called')
+        user_id = request.args.get('user_id', None)
         order_id = request.args.get('order_id', None)
         
-        if order_id:
+        if user_id and order_id:
             order = db_client.get_stock_order(user_id, order_id)
             return jsonify(order)        
         

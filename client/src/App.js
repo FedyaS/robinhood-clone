@@ -7,9 +7,9 @@ import { UserContextProvider } from "./contexts/UserContext";
 
 // Components
 import Ticker from './components/Ticker'
-import StockChart from './components/Research'
 import UserProfile from './components/Home'
 import StockOrderPage from './components/PlaceOrder'
+import ViewOrder from './components/ViewOrder';
 
 function App() {
   return (
@@ -30,24 +30,20 @@ function App() {
               <li>
                 <Link to="/view-order">View Order Status</Link>
               </li>
-    
+
             </ul>
           </nav>
-    
+
           <Routes>
             <Route path="/" element={<UserProfile />} />
             <Route path="/ticker" element={<Ticker />} />
             <Route path="/place-order" element={<StockOrderPage />} />
-            <Route path="/view-order" element={<StockChart />} />
+            <Route path="/view-order" element={<ViewOrder />} />
           </Routes>
         </div>
       </Router>
     </UserContextProvider>
   );
-}
-
-function Home() {
-  return <h2>Home Page</h2>;
 }
 
 export default App;

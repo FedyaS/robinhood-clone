@@ -1,9 +1,12 @@
 import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 import { UserContext } from "../contexts/UserContext";
 
 function StockOrderPage() {
   const {userID} = useContext(UserContext);
-  
+  const navigate = useNavigate();
+
   const [ticker, setTicker] = useState('');
   const [numShares, setNumShares] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
@@ -42,10 +45,8 @@ function StockOrderPage() {
   };
 
   const handleOkayClick = () => {
-    setSuccessMessage('');
-    setOrderId(null);
-    // Redirect to view-order page with orderId passed as a prop
-    // You'll need to implement the view-order page and routing accordingly
+    // Redirect to the view-order page
+    navigate('/view-order', { state: { orderID: orderId } });
   };
 
 return (

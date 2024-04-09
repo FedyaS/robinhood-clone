@@ -1,22 +1,30 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
+import React, { useState, useEffect, useContext } from 'react';
+import { useLocation } from 'react-router-dom';
 
-// ViewOrder Component Definition
-function ViewOrder({ userId, orderId }) {
-  const [order, setOrder] = React.useState(null);
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [error, setError] = React.useState(null);
+import { UserContext } from '../contexts/UserContext';
 
-  React.useEffect(() => {
+function ViewOrder({}) {
+  const { userID } = useContext(UserContext);
+
+  const location = useLocation();
+  const orderID = location.state?.orderID;  // Retrieve orderId from the state
+
+
+  const [order, setOrder] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
     const fetchOrder = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`http://127.0.0.1:5000/home?user_id=${userId}&order_id=${orderId}`);
+        const response = await fetch(`http://127.0.0.1:5000/order?user_id=${userID}&order_id=${orderID}`);
         if (!response.ok) {
           throw new Error(`Error: ${response.status}`);
         }
         const data = await response.json();
         setOrder(data);
+        console.log(data)
       } catch (error) {
         setError(error.toString());
       } finally {
@@ -25,7 +33,7 @@ function ViewOrder({ userId, orderId }) {
     };
 
     fetchOrder();
-  }, [userId, orderId]);
+  }, [userID]);
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -45,19 +53,4 @@ function ViewOrder({ userId, orderId }) {
   );
 }
 
-// Example Parent Component
-function App() {
-  // Example user ID and order ID
-  const userId = 'USER#ABCDEFGH';
-  const orderId = 'ORDER#ABCDEFG';
-
-  return (
-    <div>
-      <h1>Stock Order Viewer</h1>
-      <ViewOrder userId={userId} orderId={orderId} />
-    </div>
-  );
-}
-
-// Rendering the App Component
-ReactDOM.render(<App />, document.getElementById('root'));
+export default ViewOrder;
