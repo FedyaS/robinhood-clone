@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 import { UserContext } from "../contexts/UserContext";
 
 import Typography from '@mui/material/Typography';
@@ -13,6 +15,7 @@ import Paper from '@mui/material/Paper';
 
 
 const UserProfile = ({ }) => {
+  const navigate = useNavigate();
   const { userID } = useContext(UserContext);
   const [userData, setUserData] = useState(null);
   const [stocksData, setStocksData] = useState([]);
@@ -41,6 +44,10 @@ const UserProfile = ({ }) => {
     return <div>Loading...</div>;
   }
 
+  const handleOrderClick = (orderID) => {
+    navigate('/view-order', { state: { orderID: orderID } });
+  }
+
 
 return (
   <div>
@@ -60,7 +67,7 @@ return (
         </Typography>
       </CardContent>
     </Card>
-    <Typography variant="h5" gutterBottom component="h2">
+    <Typography variant="h5" marginTop={"20px"} gutterBottom component="h2">
       Stocks
     </Typography>
     <Paper>
@@ -85,13 +92,14 @@ return (
         </TableBody>
       </Table>
     </Paper>
-    <Typography variant="h5" gutterBottom component="h2">
+    <Typography variant="h5" marginTop={"20px"} gutterBottom component="h2">
       Orders
     </Typography>
     <Paper>
       <Table>
         <TableHead>
           <TableRow>
+            <TableCell>Order ID</TableCell>
             <TableCell>Ticker</TableCell>
             <TableCell align="right">Shares</TableCell>
             <TableCell align="right">Status</TableCell>
@@ -100,8 +108,9 @@ return (
         </TableHead>
         <TableBody>
           {ordersData.map((order, index) => (
-            <TableRow key={index}>
-              <TableCell component="th" scope="row">
+            <TableRow key={index} onClick={() => handleOrderClick(order.id)} hover={true}>
+              <TableCell component="th" scope="row">{order.id}</TableCell>
+              <TableCell>
                 {order.ticker}
               </TableCell>
               <TableCell align="right">{order.num_shares}</TableCell>
