@@ -41,10 +41,6 @@ function ViewOrder() {
     setSearchOrderId(e.target.value);
   };
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!order) return <div>No order found. Please enter an Order ID to search.</div>;
-
   return (
     <div>
       <h2>Order Details</h2>
