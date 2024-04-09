@@ -1,78 +1,67 @@
 import React, { useState } from 'react';
 
-// Style object for component styling
-const styles = {
-    container: {
-        padding: '20px',
-        fontFamily: 'Arial',
-    },
-    form: {
-        marginBottom: '20px',
-    },
-    input: {
-        marginRight: '5px',
-    },
-    results: {
-        marginTop: '20px',
-    },
-};
+// A basic array of common ticker symbols for suggestions
+const COMMON_TICKERS = ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'FB'];
 
-// Sample ticker symbols
-const popularTickers = ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'TSLA'];
+const TickerSearch = () => {
+  const [ticker, setTicker] = useState('');
+  const [tickerData, setTickerData] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-const Ticker = () => {
-    const [data, setData] = useState(null);
-    const [input, setInput] = useState('');
+  const handleTickerChange = (e) => {
+    setTicker(e.target.value.toUpperCase());
+  };
 
-    // Fetch data using native fetch API
-    const fetchData = async (ticker) => {
-        try {
-            const response = await fetch(`http://127.0.0.1:5000/ticker?symbol=${ticker}`);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const json = await response.json();
-            setData(json);
-        } catch (error) {
-            console.error("Failed to fetch: ", error);
-            setData(null);
-        }
-    };
+  const fetchTickerData = async (tickerSymbol) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`http://127.0.0.1:5000/ticker?symbol=${tickerSymbol}`);
+      const data = await response.json();
+      setTickerData(data);
+    } catch (error) {
+      console.error("Error fetching ticker data:", error);
+      setTickerData(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    // Handle form submission
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        fetchData(input);
-    };
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    fetchTickerData(ticker);
+  };
 
-    return(        // Apply styles in the component
-        <div style={styles.container}>
-            <h2>Search for a Ticker</h2>
-            <form onSubmit={handleSubmit} style={styles.form}>
-            <input
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    list="tickers"
-                    placeholder="Enter ticker symbol"
-                />
-                <datalist id="tickers">
-                    {popularTickers.map(ticker => (
-                        <option key={ticker} value={ticker} />
-                    ))}
-                </datalist>
-                <button type="submit">Search</button>
-            {data && (
-                <div>
-                    <h3>Results:</h3>
-                    <p>ID: {data.id}</p>
-                    <p>Time: {new Date(data.time * 1000).toLocaleString()}</p>
-                    <p>Ticker Data: {JSON.stringify(data.ticker_data, null, 2)}</p>
-                </div>
-            )}
-            </form>
+  return (
+    <div>
+      <form onSubmit={handleSubmit}>
+        <label htmlFor="tickerInput">Enter Ticker:</label>
+        <input
+          id="tickerInput"
+          type="text"
+          value={ticker}
+          onChange={handleTickerChange}
+          list="tickers-suggestions"
+        />
+        <datalist id="tickers-suggestions">
+          {COMMON_TICKERS.map((symbol) => (
+            <option key={symbol} value={symbol} />
+          ))}
+        </datalist>
+        <button type="submit">Search</button>
+      </form>
+
+      {loading && <p>Loading...</p>}
+
+      {tickerData && (
+        <div>
+          <h2>{tickerData.name} ({ticker})</h2>
+          <p>{tickerData.description}</p>
+          <h3>Last Price: ${tickerData.last_price / 100}</h3>
+          {/* Add more detailed rendering based on your needs */}
         </div>
-    );
+      )}
+    </div>
+  );
 };
 
-export default Ticker;
+export default TickerSearch;

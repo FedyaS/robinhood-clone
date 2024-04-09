@@ -8,8 +8,8 @@ def create_dynamodb_table(dynamodb=None):
             'dynamodb',
             endpoint_url="http://localhost:8000",
             region_name='us-west-2',
-            aws_access_key_id='fakeMyKeyId',
-            aws_secret_access_key='fakeSecretAccessKey'
+            aws_access_key_id='dummy',
+            aws_secret_access_key='dummy'
         )
 
     table_name = 'FullDB'

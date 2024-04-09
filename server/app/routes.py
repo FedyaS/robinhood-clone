@@ -37,8 +37,9 @@ def home():
     print('/home called')
     
     user_id = request.args.get('user_id', default='123456', type=str)
-    
-    user = db_client.get_user()
+    print(request)
+    print(user_id)
+    user = db_client.get_user(user_id)
     stocks = db_client.query_user_stock(user_id)
 
     return jsonify({

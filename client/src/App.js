@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Dashboard from './components/Dashboard'; // Assuming Dashboard.js is in the same directory
 import Ticker from './components/Ticker'
 import StockChart from './components/Research'
+import UserProfile from './components/Home'
 
 function App() {
   return (
@@ -28,7 +29,7 @@ function App() {
         </nav>
 
         <Routes>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/" element={<UserProfile />} />
           <Route path="/ticker" element={<Ticker />} />
           <Route path="/place-order" element={<StockChart />} />
           <Route path="/view-order" element={<StockChart />} />
