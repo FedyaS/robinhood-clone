@@ -1,10 +1,22 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { UserContext } from "../contexts/UserContext";
 
+import Typography from '@mui/material/Typography';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
+
+
 const UserProfile = ({ }) => {
   const { userID } = useContext(UserContext);
   const [userData, setUserData] = useState(null);
   const [stocksData, setStocksData] = useState([]);
+  const [ordersData, setOrdersData] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -17,6 +29,9 @@ const UserProfile = ({ }) => {
       if (data.stocks) {
         setStocksData(data.stocks);
       }
+      if (data.orders) {
+        setOrdersData(data.orders)
+      }
     };
 
     fetchData();
@@ -26,22 +41,80 @@ const UserProfile = ({ }) => {
     return <div>Loading...</div>;
   }
 
-  return (
-    <div>
-      <h1>User Profile</h1>
-      <h2>{userData.name}</h2>
-      <p>ID: {userData.id}</p>
-      <p>Cash: ${userData.cash / 100}</p>
-      <h3>Stocks</h3>
-      <ul>
-        {stocksData.map((stock, index) => (
-          <li key={index}>
-            Ticker: {stock.ticker}, Shares: {stock.num_shares}, Value: ${stock.num_shares * stock.last_price / 100}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+
+return (
+  <div>
+    <Typography variant="h4" gutterBottom>
+      User Profile
+    </Typography>
+    <Card variant="outlined">
+      <CardContent>
+        <Typography variant="h5" component="h2">
+          {userData.name}
+        </Typography>
+        <Typography color="textSecondary">
+          ID: {userData.id}
+        </Typography>
+        <Typography variant="body1">
+          Cash: ${userData.cash / 100}
+        </Typography>
+      </CardContent>
+    </Card>
+    <Typography variant="h5" gutterBottom component="h2">
+      Stocks
+    </Typography>
+    <Paper>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Ticker</TableCell>
+            <TableCell align="right">Shares</TableCell>
+            <TableCell align="right">Value ($)</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {stocksData.map((stock, index) => (
+            <TableRow key={index}>
+              <TableCell component="th" scope="row">
+                {stock.ticker}
+              </TableCell>
+              <TableCell align="right">{stock.num_shares}</TableCell>
+              <TableCell align="right">${stock.num_shares * stock.last_price / 100}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </Paper>
+    <Typography variant="h5" gutterBottom component="h2">
+      Orders
+    </Typography>
+    <Paper>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Ticker</TableCell>
+            <TableCell align="right">Shares</TableCell>
+            <TableCell align="right">Status</TableCell>
+            <TableCell align="right">Value ($)</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {ordersData.map((order, index) => (
+            <TableRow key={index}>
+              <TableCell component="th" scope="row">
+                {order.ticker}
+              </TableCell>
+              <TableCell align="right">{order.num_shares}</TableCell>
+              <TableCell align="right">{order.status}</TableCell>
+              <TableCell align="right">${order.num_shares * order.purchase_price_per_share / 100}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </Paper>
+  </div>
+);
+
 };
 
 export default UserProfile;

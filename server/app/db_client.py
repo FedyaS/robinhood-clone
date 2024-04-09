@@ -94,6 +94,35 @@ def get_stock(user_id, ticker):
         print(f"An error occurred: {e}")
         return {"exists": False, "error": {e}}
 
+def query_user_info(user_id):
+    pk = f"USER#{user_id}"
+
+    try:
+        response = table.query(
+            KeyConditionExpression=Key('PK').eq(pk)
+        )
+    except Exception as e:
+        print(f"Error querying user info: {e}")
+        return None
+    
+    items = response.get('Items', [])
+    if items:
+        stocks = []
+        orders = []
+        user = {}
+        
+        for itm in items:
+            if itm['type'] == 'STOCK':
+                stocks.append(itm)
+            elif itm['type'] == 'STOCK_ORDER':
+                orders.append(itm)
+            elif itm['type'] == 'USER':
+                user = itm
+
+        return user, stocks, orders
+    else:
+        return None
+    
 
 def query_user_stock(user_id):
     # Construct the PK value from the user_id

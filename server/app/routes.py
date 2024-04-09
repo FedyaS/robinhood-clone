@@ -23,13 +23,12 @@ def home():
     if not user_id:
         return jsonify({"error": "No user ID present."}), 401
     
-    # TODO: Make these fetch in parallel
-    user = db_client.get_user(user_id)
-    stocks = db_client.query_user_stock(user_id)
+    user, stocks, orders = db_client.query_user_info(user_id)
 
     return jsonify({
         'user': user,
-        'stocks': stocks
+        'stocks': stocks,
+        'orders': orders
     })
 
 # Gets info about specified ticker
