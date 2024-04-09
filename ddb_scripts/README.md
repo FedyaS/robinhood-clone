@@ -1,0 +1,1 @@
+Use these to create the Table, put default user, get specific item, or clear the entire table.

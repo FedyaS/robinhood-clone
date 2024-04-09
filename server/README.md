@@ -23,5 +23,12 @@ The table follows the following access patterns:
 This allows us to easily retrieve all info for a user or any one individual item with one get / query.
 In the future sorting could be implemented to help only query the most recent Orders.
 
+## Background Order Processing
+The server accepts user orders immediately as they come in (provided the user has enough balance).
+It also accepts a min / max acceptable price for filling the order.
+This is typical in stock applications as stock price can fluctuate quickly.
+After this, the server proceeds to attempt and fill the order based on the live market price and client provided min / max.
+Meanwhile, the client polls the status of the order.
+
 ## Improvements
 This app is missing unit tests, type hints, and schema validation (when writing to DB).
