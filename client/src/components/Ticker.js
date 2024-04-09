@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+
+import tenPercentMore from '../helpers/tenPercentMore';
 
 import { Alert, TextField, Button, Typography, Card, CardContent, Table, TableBody, TableCell, TableHead, TableRow, CircularProgress } from '@mui/material';
 
@@ -7,14 +9,13 @@ import { Alert, TextField, Button, Typography, Card, CardContent, Table, TableBo
 // A basic array of common ticker symbols for suggestions
 const COMMON_TICKERS = ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'FB'];
 
-function tenPercentMore(num) {
-  return Math.floor(num * 1.10)
-}
-
 const TickerSearch = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const defaultTicker = location.state?.ticker || ''
   
-  const [ticker, setTicker] = useState('');
+  const [ticker, setTicker] = useState(defaultTicker);
   const [tickerData, setTickerData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -24,6 +25,7 @@ const TickerSearch = () => {
   };
 
   const fetchTickerData = async (tickerSymbol) => {
+    setErrorMsg('');
     setLoading(true);
     try {
       const response = await fetch(`http://127.0.0.1:5000/ticker?symbol=${tickerSymbol}`);
@@ -43,10 +45,16 @@ const TickerSearch = () => {
     }
   };
 
+  // Fetch ticker right away if passed in
+  useEffect(() => {
+    if (defaultTicker) {
+      fetchTickerData(defaultTicker)
+    }
+  }, [defaultTicker])
+
   const handleSubmit = (e) => {
     e.preventDefault();
     fetchTickerData(ticker);
-    setErrorMsg('')
   };
 
   const handleBuy = (e) => {

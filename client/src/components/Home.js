@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { UserContext } from "../contexts/UserContext";
+import tenPercentMore from '../helpers/tenPercentMore';
 
 import Typography from '@mui/material/Typography';
 import Card from '@mui/material/Card';
@@ -12,6 +13,7 @@ import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
+import Button from '@mui/material/Button'
 
 
 const UserProfile = ({ }) => {
@@ -48,6 +50,14 @@ const UserProfile = ({ }) => {
     navigate('/view-order', { state: { orderID: orderID } });
   }
 
+  const handleStockClick = (ticker) => {
+    navigate('/ticker', {state: {ticker: ticker}});
+  }
+
+  const handleStockBuy = (stock) => {
+      navigate('/place-order', { state: { ticker: stock.ticker, numShares: 1, maxPrice: tenPercentMore(stock.last_price)   } });
+  }
+
 
 return (
   <div>
@@ -75,17 +85,29 @@ return (
         <TableHead>
           <TableRow>
             <TableCell>Ticker</TableCell>
-            <TableCell align="right">Shares</TableCell>
+            <TableCell align="left">Shares</TableCell>
+            <TableCell align="center">BUY</TableCell>
             <TableCell align="right">Value ($)</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {stocksData.map((stock, index) => (
-            <TableRow key={index}>
+            <TableRow key={index} onClick={() => handleStockClick(stock.ticker)} hover={true}>
               <TableCell component="th" scope="row">
                 {stock.ticker}
               </TableCell>
-              <TableCell align="right">{stock.num_shares}</TableCell>
+              <TableCell align="left">{stock.num_shares}</TableCell>
+              <TableCell align="center">
+                <Button 
+                  variant="outlined"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent TableRow onClick from firing
+                    handleStockBuy(stock);
+                  }}
+                >
+                  BUY
+                </Button>
+              </TableCell>
               <TableCell align="right">${stock.num_shares * stock.last_price / 100}</TableCell>
             </TableRow>
           ))}
