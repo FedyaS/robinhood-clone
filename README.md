@@ -1,23 +1,35 @@
 # robinhood-clone
+This is a basic robinhood-clone that allows users to research, buy, and sell stocks.
 
+## pre-requistes for running
+This app uses React, Flask, and DynamoDB Local.
+You will need Node, Python, and Docker for everything to work.
 
-To run this app, you will need to run the React App Locally + the Flask App Locally.
+## first-time setup
+### Setup Python
+1. `cd server`
+1. `python -m venv`
+1. Windows - `venv\Scripts\activate.bat` OR Mac - `source venv/bin/activate`
+1. `pip3 install -r requirements.txt`
 
-First, create a venv.
+### Setup React
+1. `cd client` (from the Project Directory)
+1. `npm i`
 
-Then activate it:
-venv\Scripts\activate.bat
-source venv/bin/activate
+### Setup DynamoDB Local
+1. `docker pull amazon/dynamodb-local`
+1. `docker run -p 8000:8000 amazon/dynamodb-local -jar DynamoDBLocal.jar -sharedDb`
+1. `cd ./ddb_scripts` (from the Project Directory)
+1. `python3 create_ddb.py` (with Venv)
+1. `python3 put.py`
 
-Then you will need to commands shells to run the React App + the Flask App:
-In the client/ directory use:
-```
-npm start
-```
+## running
+Client:
+1. `cd client`
+1. `npm start`
 
-In the server/directory use:
-```
-set FLASK_APP=app
-set FLASK_ENV=development
-flask run
-```
+Backend:
+1. `cd server`
+1. `set FLASK_APP=app`
+1. `set FLASK_ENV=development`
+1. `flask run`

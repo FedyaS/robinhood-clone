@@ -27,7 +27,7 @@ def put_item_in_table(dynamodb=None):
 
     try:
         response = table.put_item(Item=json_object)
-        print("Item inserted successfully:", response)
+        print("Item inserted successfully:\n", response)
     except ClientError as e:
         print("Failed to insert item:", e)
 
