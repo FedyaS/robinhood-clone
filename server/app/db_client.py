@@ -186,8 +186,7 @@ def put_order(user_id, order_id, ticker, num_shares, max_price, cash_allotted):
                         'ConditionExpression': 'cash >= :ca',
                         'ExpressionAttributeValues': {
                             ':ca': cash_allotted
-                        },
-                        'ReturnValuesOnConditionCheckFailure': 'ALL_OLD'
+                        }
                     }
                 }
             ]
@@ -304,8 +303,7 @@ def finish_order(user_id, order_id, returned_cash, ticker, last_price, num_share
                 'ExpressionAttributeValues': {
                     ':numShares': num_shares,
                     ':lastPrice': last_price
-                },
-                'ReturnValues': 'UPDATED_NEW'
+                }
             }
         }
         operations.append(update_stock)

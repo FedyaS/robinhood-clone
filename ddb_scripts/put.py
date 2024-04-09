@@ -20,7 +20,7 @@ def put_item_in_table(dynamodb=None):
         "SK": "USER#ABCDEFGH",
         "id": "ABCDEFGH",
         "name": "John Doe",
-        "cash": 50000, # Represents $500.00
+        "cash": 5000000, # Represents $50,000.00
         "type": "USER"
     }
 
