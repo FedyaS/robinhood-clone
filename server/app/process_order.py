@@ -1,4 +1,3 @@
-import time
 import app.ticker_data as ticker_data
 import app.db_client as db_client
 

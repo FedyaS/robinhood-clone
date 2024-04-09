@@ -100,8 +100,21 @@ def query_user_stock(user_id):
     else:
         return None
 
-def put_order(user_id, order_id, ticker, num_shares, max_price, cash_allotted):
+def transact_write(operations):
     client = dynamodb.meta.client
+    
+    print(f"transact_write for {len(operations)} items")
+    try:
+        client.transact_write_items(
+            TransactItems=operations
+        )
+        print("Transaction successful.")
+        return True
+    except Exception as e:
+        print(f"Transaction failed: {e}")
+        return False
+
+def put_order(user_id, order_id, ticker, num_shares, max_price, cash_allotted):
     user_pk = f'USER#{user_id}'
     stock_order_sk = f'STOCK_ORDER#{order_id}'
 
@@ -119,17 +132,14 @@ def put_order(user_id, order_id, ticker, num_shares, max_price, cash_allotted):
         "type": 'STOCK_ORDER'
     }
     
-    try:
-        # Start a transaction
-        client.transact_write_items(
-            TransactItems=[
-                {
+    put_order = {
                     'Put': {
                         'TableName': 'FullDB',
                         'Item': order
                     }
-                },
-                {
+                }
+    
+    update_user = {
                     'Update': {
                         'TableName': 'FullDB',
                         'Key': {
@@ -143,16 +153,15 @@ def put_order(user_id, order_id, ticker, num_shares, max_price, cash_allotted):
                         }
                     }
                 }
-            ]
-        )
-    except Exception as e:
-        print(f"Error processing order: {e}")
+
+    res = transact_write([put_order, update_user])
+    if res:
+        return order
+    else:
         return None
 
-    return order
 
 def put_sell_order(user_id, order_id, ticker, num_shares, min_price, cash_allotted):
-    client = dynamodb.meta.client
     user_pk = f'USER#{user_id}'
     stock_order_sk = f'STOCK_ORDER#{order_id}'
     stock_sk = f'STOCK#{ticker}'
@@ -171,17 +180,16 @@ def put_sell_order(user_id, order_id, ticker, num_shares, min_price, cash_allott
         "type": 'STOCK_ORDER'
     }
     
-    try:
-        # Start a transaction
-        client.transact_write_items(
-            TransactItems=[
-                {
+    # Make an order Object
+    put_order = {
                     'Put': {
                         'TableName': 'FullDB',
                         'Item': order
                     }
-                },
-                {
+                }
+    
+    # Deduct Sold Shares
+    update_stock = {
                     'Update': {
                         'TableName': 'FullDB',
                         'Key': {
@@ -195,20 +203,18 @@ def put_sell_order(user_id, order_id, ticker, num_shares, min_price, cash_allott
                         }
                     }
                 }
-            ]
-        )
-    except Exception as e:
-        print(f"Error processing order: {e}")
+    
+    res = transact_write([put_order, update_stock])
+    if res:
+        return order
+    else:
         return None
-
-    return order
     
 
 def cancel_order(user_id, order_id, cash_allotted):
     # Add the cash_allotted back into the user object cash field
     # Update the order object status to CANCELLED
 
-    client = dynamodb.meta.client
     user_pk = f"USER#{user_id}"
     order_sk = f"STOCK_ORDER#{order_id}"
 
@@ -243,26 +249,16 @@ def cancel_order(user_id, order_id, cash_allotted):
         }
     }
  
-    operations = [update_user, update_stock_order]
-    try:
-        client.transact_write_items(
-            TransactItems=operations
-        )
-        print("Transaction successful.")
-    except Exception as e:
-        print(f"Transaction failed: {e}")
+    transact_write([update_user, update_stock_order])
 
     return
 
 def cancel_sell_order(user_id, order_id, ticker, shares_returned):
-    # Add the num_shares back into the user stock num_shares field
-    # Update the order object status to CANCELLED
-
-    client = dynamodb.meta.client
     user_pk = f"USER#{user_id}"
     order_sk = f"STOCK_ORDER#{order_id}"
     stock_sk = f"STOCK#{ticker}"
 
+    # Add the num_shares back into the user stock num_shares field
     update_stock = {
         'Update': {
             'TableName': 'FullDB',
@@ -277,6 +273,7 @@ def cancel_sell_order(user_id, order_id, ticker, shares_returned):
         }
     }
 
+    # Update the order object status to CANCELLED
     update_stock_order = {
         'Update': {
             'TableName': 'FullDB',
@@ -294,19 +291,11 @@ def cancel_sell_order(user_id, order_id, ticker, shares_returned):
         }
     }
  
-    operations = [update_stock, update_stock_order]
-    try:
-        client.transact_write_items(
-            TransactItems=operations
-        )
-        print("Transaction successful.")
-    except Exception as e:
-        print(f"Transaction failed: {e}")
+    transact_write([update_stock, update_stock_order])
 
     return
 
 def finish_order(user_id, order_id, returned_cash, ticker, last_price, num_shares):
-    client = dynamodb.meta.client
     user_pk = f"USER#{user_id}"
     order_sk = f"STOCK_ORDER#{order_id}"
 
@@ -384,16 +373,11 @@ def finish_order(user_id, order_id, returned_cash, ticker, last_price, num_share
         operations.append(create_stock)
 
 
-    try:
-        client.transact_write_items(
-            TransactItems=operations
-        )
-        print("Transaction successful.")
-    except Exception as e:
-        print(f"Transaction failed: {e}")
+    transact_write(operations)
+
+    return
 
 def finish_sell_order(user_id, order_id, last_price, cash_influx):
-    client = dynamodb.meta.client
     user_pk = f"USER#{user_id}"
     order_sk = f"STOCK_ORDER#{order_id}"
 
@@ -431,12 +415,6 @@ def finish_sell_order(user_id, order_id, last_price, cash_influx):
         }
     }
 
-    operations = [update_user, update_stock_order]
+    transact_write([update_user, update_stock_order])
 
-    try:
-        client.transact_write_items(
-            TransactItems=operations
-        )
-        print("Transaction successful.")
-    except Exception as e:
-        print(f"Transaction failed: {e}")
+    return

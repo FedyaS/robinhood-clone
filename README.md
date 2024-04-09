@@ -30,6 +30,6 @@ Client:
 
 Backend:
 1. `cd server`
-1. `set FLASK_APP=app`
-1. `set FLASK_ENV=development`
+1. Windows - `set FLASK_APP=app` OR Mac - `export FLASK_APP=app`
+1. `set FLASK_ENV=development` OR Mac - `export FLASK_ENV=development`
 1. `flask run`

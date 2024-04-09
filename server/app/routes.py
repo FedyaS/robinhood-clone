@@ -93,7 +93,6 @@ def order():
         if not cash_bal or cash_bal < cash_allotted:
             return jsonify({"error": "Insufficient Funds - NSF."}), 401
 
-
         # Create a PROCESSING Order
         order_id = db_client.generate_id()
         order = db_client.put_order(user_id, order_id, ticker, num_shares, max_price, cash_allotted)
@@ -117,10 +116,12 @@ def order():
         else:
             return jsonify({"error": "Order ID is required for tracking."}), 400
 
+# Used to place a sell stock order
 @main.route('/sell', methods=['POST'])
 def sell():
     if request.method == 'POST':
-        data = request.json  # Assuming JSON data is sent with the POST request
+        # Extract and Verify Data
+        data = request.json
         
         user_id = data.get('user_id', None)
         num_shares = data.get('num_shares', None)
@@ -134,8 +135,8 @@ def sell():
         if not ticker_exists(ticker):
             return jsonify({"error": "Invalid ticker. Please try again."}), 400
 
+        # Verify the User is only selling Stock they Own
         stock = db_client.get_stock(user_id, ticker)
-
         if stock:
             owned_shares = stock.get('num_shares', None)
         else:
@@ -148,6 +149,7 @@ def sell():
         order_id = db_client.generate_id()
         order = db_client.put_sell_order(user_id, order_id, ticker, num_shares, min_price, cash_allotted)
         
+        # Send to background thread for processing
         background_thread = threading.Thread(target=process_order.process_sell_order, args=(user_id, order_id, ticker, num_shares, min_price,))
         background_thread.start()
         
