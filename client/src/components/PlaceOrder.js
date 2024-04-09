@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { TextField, Button, Typography, Card, CardContent, CircularProgress } from '@mui/material';
+import { Alert, TextField, Button, Typography, Card, CardContent, CircularProgress } from '@mui/material';
 
 import { UserContext } from "../contexts/UserContext";
 
@@ -22,12 +22,14 @@ function StockOrderPage() {
   const [maxPrice, setMaxPrice] = useState(defaultMaxPrice);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [orderId, setOrderId] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrorMsg('');
 
     try {
       const response = await fetch('http://127.0.0.1:5000/order', {
@@ -45,10 +47,16 @@ function StockOrderPage() {
       });
 
       const data = await response.json();
+
+      if (!data || !data.id) {
+        throw new Error(`Error placing order: ${data.error}`)
+      }
+
       setSuccessMessage('Order placed successfully!');
       setOrderId(data.id);
     } catch (error) {
       console.error('Error placing order:', error);
+      setErrorMsg(error.message)
     } finally {
       setIsLoading(false);
     }
@@ -96,7 +104,7 @@ return (
             type="number"
             id="maxPrice"
             value={maxPrice / 100} // Display the cents value as dollars
-            onChange={(e) => setMaxPrice(Math.round(e.target.value * 100))} // Convert dollars to cents when input changes
+            onChange={(e) => setMaxPrice(e.target.value * 100)} // Convert dollars to cents when input changes
             variant="outlined"
             margin="normal"
             fullWidth
@@ -114,6 +122,7 @@ return (
           {isLoading ? <CircularProgress size={24} /> : 'Place Order'}
         </Button>
       </form>
+      {errorMsg && (<Alert severity="error">{errorMsg}</Alert>)}
       {successMessage && (
         <div style={{ marginTop: '20px' }}>
           <Typography variant="body1" color="success.main">
