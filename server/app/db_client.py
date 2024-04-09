@@ -160,8 +160,9 @@ def put_order(user_id, order_id, ticker, num_shares, max_price, cash_allotted):
         "num_shares": num_shares,
         "max_price_per_share": max_price,
         "cash_allotted": cash_allotted,
-        "purchase_price_per_share": 0,
+        "filled_price_per_share": 0,
         "status": 'PROCESSING',
+        "subtype": 'BUY',
         "type": 'STOCK_ORDER'
     }
     
@@ -196,6 +197,59 @@ def put_order(user_id, order_id, ticker, num_shares, max_price, cash_allotted):
         return None
 
     return order
+
+def put_sell_order(user_id, order_id, ticker, num_shares, min_price, cash_allotted):
+    client = dynamodb.meta.client
+    user_pk = f'USER#{user_id}'
+    stock_order_sk = f'STOCK_ORDER#{order_id}'
+    stock_sk = f'STOCK#{ticker}'
+
+    order = {
+        "PK": user_pk,
+        "SK": stock_order_sk,
+        "id": order_id,
+        "ticker": ticker,
+        "num_shares": num_shares,
+        "min_price_per_share": min_price,
+        "cash_allotted": cash_allotted,
+        "filled_price_per_share": 0,
+        "status": 'PROCESSING',
+        "subtype": 'SELL',
+        "type": 'STOCK_ORDER'
+    }
+    
+    try:
+        # Start a transaction
+        client.transact_write_items(
+            TransactItems=[
+                {
+                    'Put': {
+                        'TableName': 'FullDB',
+                        'Item': order
+                    }
+                },
+                {
+                    'Update': {
+                        'TableName': 'FullDB',
+                        'Key': {
+                            'PK': user_pk,
+                            'SK': stock_sk
+                        },
+                        'UpdateExpression': 'SET num_shares = num_shares - :numShares',
+                        'ConditionExpression': 'num_shares >= :numShares',
+                        'ExpressionAttributeValues': {
+                            ':numShares': num_shares
+                        }
+                    }
+                }
+            ]
+        )
+    except Exception as e:
+        print(f"Error processing order: {e}")
+        return None
+
+    return order
+    
 
 def cancel_order(user_id, order_id, cash_allotted):
     # Add the cash_allotted back into the user object cash field
@@ -247,6 +301,56 @@ def cancel_order(user_id, order_id, cash_allotted):
 
     return
 
+def cancel_sell_order(user_id, order_id, ticker, shares_returned):
+    # Add the num_shares back into the user stock num_shares field
+    # Update the order object status to CANCELLED
+
+    client = dynamodb.meta.client
+    user_pk = f"USER#{user_id}"
+    order_sk = f"STOCK_ORDER#{order_id}"
+    stock_sk = f"STOCK#{ticker}"
+
+    update_stock = {
+        'Update': {
+            'TableName': 'FullDB',
+            'Key': {
+                'PK': user_pk,
+                'SK': stock_sk
+            },
+            'UpdateExpression': 'SET num_shares = num_shares + :numShares',
+            'ExpressionAttributeValues': {
+                ':numShares': shares_returned
+            }
+        }
+    }
+
+    update_stock_order = {
+        'Update': {
+            'TableName': 'FullDB',
+            'Key': {
+                'PK': user_pk,
+                'SK': order_sk
+            },
+            'UpdateExpression': 'SET #status = :cancelledStatus',
+            'ExpressionAttributeValues': {
+                ':cancelledStatus': 'CANCELLED'
+            },
+            'ExpressionAttributeNames': {
+                '#status': 'status'
+            }
+        }
+    }
+ 
+    operations = [update_stock, update_stock_order]
+    try:
+        client.transact_write_items(
+            TransactItems=operations
+        )
+        print("Transaction successful.")
+    except Exception as e:
+        print(f"Transaction failed: {e}")
+
+    return
 
 def finish_order(user_id, order_id, returned_cash, ticker, last_price, num_shares):
     client = dynamodb.meta.client
@@ -276,7 +380,7 @@ def finish_order(user_id, order_id, returned_cash, ticker, last_price, num_share
                 'PK': user_pk,
                 'SK': order_sk
             },
-            'UpdateExpression': 'SET #status = :statusCompleted, purchase_price_per_share = :lastPrice',
+            'UpdateExpression': 'SET #status = :statusCompleted, filled_price_per_share = :lastPrice',
             'ExpressionAttributeValues': {
                 ':statusCompleted': 'COMPLETED',
                 ':lastPrice': last_price
@@ -335,3 +439,51 @@ def finish_order(user_id, order_id, returned_cash, ticker, last_price, num_share
     except Exception as e:
         print(f"Transaction failed: {e}")
 
+def finish_sell_order(user_id, order_id, last_price, cash_influx):
+    client = dynamodb.meta.client
+    user_pk = f"USER#{user_id}"
+    order_sk = f"STOCK_ORDER#{order_id}"
+
+    # Add cash to user's account
+    update_user = {
+        'Update': {
+            'TableName': 'FullDB',
+            'Key': {
+                'PK': user_pk,
+                'SK': user_pk
+            },
+            'UpdateExpression': 'SET cash = cash + :cashInflux',
+            'ExpressionAttributeValues': {
+                ':cashInflux': cash_influx
+            }
+        }
+    }
+
+    # Mark the STOCK_ORDER as completed and set the purchase price
+    update_stock_order = {
+        'Update': {
+            'TableName': 'FullDB',
+            'Key': {
+                'PK': user_pk,
+                'SK': order_sk
+            },
+            'UpdateExpression': 'SET #status = :statusCompleted, filled_price_per_share = :lastPrice',
+            'ExpressionAttributeValues': {
+                ':statusCompleted': 'COMPLETED',
+                ':lastPrice': last_price
+            },
+            'ExpressionAttributeNames': {
+                '#status': 'status'
+            }
+        }
+    }
+
+    operations = [update_user, update_stock_order]
+
+    try:
+        client.transact_write_items(
+            TransactItems=operations
+        )
+        print("Transaction successful.")
+    except Exception as e:
+        print(f"Transaction failed: {e}")

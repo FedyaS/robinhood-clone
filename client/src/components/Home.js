@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { UserContext } from "../contexts/UserContext";
-import tenPercentMore from '../helpers/tenPercentMore';
+import {tenPercentMore, tenPercentLess} from '../helpers/percent';
 
 import Typography from '@mui/material/Typography';
 import Card from '@mui/material/Card';
@@ -58,6 +58,10 @@ const UserProfile = ({ }) => {
       navigate('/place-order', { state: { ticker: stock.ticker, numShares: 1, maxPrice: tenPercentMore(stock.last_price)   } });
   }
 
+  const handleStockSell = (stock) => {
+      navigate('/place-order', { state: { ticker: stock.ticker, numShares: 1, maxPrice: tenPercentLess(stock.last_price), sell: true} });
+  }
+
 
 return (
   <div>
@@ -87,6 +91,7 @@ return (
             <TableCell>Ticker</TableCell>
             <TableCell align="left">Shares</TableCell>
             <TableCell align="center">BUY</TableCell>
+            <TableCell align="center">SELL</TableCell>
             <TableCell align="right">Value ($)</TableCell>
           </TableRow>
         </TableHead>
@@ -108,6 +113,17 @@ return (
                   BUY
                 </Button>
               </TableCell>
+              <TableCell align="center">
+                <Button 
+                  variant="outlined"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent TableRow onClick from firing
+                    handleStockSell(stock);
+                  }}
+                >
+                  SELL
+                </Button>
+              </TableCell>
               <TableCell align="right">${stock.num_shares * stock.last_price / 100}</TableCell>
             </TableRow>
           ))}
@@ -124,8 +140,9 @@ return (
             <TableCell>Order ID</TableCell>
             <TableCell>Ticker</TableCell>
             <TableCell align="right">Shares</TableCell>
-            <TableCell align="right">Status</TableCell>
-            <TableCell align="right">Value ($)</TableCell>
+            <TableCell align="center">Status</TableCell>
+            <TableCell align="right">Type</TableCell>
+            <TableCell align="right">($) Cash</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -136,8 +153,9 @@ return (
                 {order.ticker}
               </TableCell>
               <TableCell align="right">{order.num_shares}</TableCell>
-              <TableCell align="right">{order.status}</TableCell>
-              <TableCell align="right">${order.num_shares * order.purchase_price_per_share / 100}</TableCell>
+              <TableCell align="center">{order.status}</TableCell>
+              <TableCell align="right">{order.subtype}</TableCell>
+              <TableCell align="right" style={{ backgroundColor: order.subtype === 'SELL' ? '#CCFFCC': '#FFCCCC' }}>$ {order.num_shares * order.filled_price_per_share / 100}</TableCell>
             </TableRow>
           ))}
         </TableBody>

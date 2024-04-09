@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useLocation } from 'react-router-dom';
+import { TextField, Button, CircularProgress, Typography, Box, Paper } from '@mui/material';
 
 import { UserContext } from '../contexts/UserContext';
 
@@ -41,44 +42,53 @@ function ViewOrder() {
     setSearchOrderId(e.target.value);
   };
 
-  return (
-    <div>
-      <h2>Order Details</h2>
-      {/* Container for the search functionality */}
-      <div style={{ marginBottom: '20px' }}>
-        <label htmlFor="orderSearch" style={{ marginRight: '10px' }}>Search Order ID:</label>
-        <input
-          id="orderSearch"
-          type="text"
-          value={searchOrderId}
-          onChange={handleSearchChange}
-          placeholder="Enter Order ID"
-          style={{ marginRight: '10px' }}
-        />
-        <button onClick={() => setSearchOrderId(searchOrderId)}>Search</button>
-      </div>
-    
-      {/* Conditional rendering based on the fetching state */}
-      {isLoading ? (
-        <div>Loading...</div>
-      ) : error ? (
-        <div>Error: {error}</div>
-      ) : order ? (
-        // Display order details if an order is found
-        <div>
-          <p><strong>ID:</strong> {order.id}</p>
-          <p><strong>Ticker:</strong> {order.ticker}</p>
-          <p><strong>Number of Shares:</strong> {order.num_shares}</p>
-          <p><strong>Max Price Per Share:</strong> {order.max_price_per_share / 100} USD</p>
-          <p><strong>Purchase Price Per Share:</strong> {order.purchase_price_per_share / 100} USD</p>
-          <p><strong>Cash Allotted:</strong> {order.cash_allotted / 100} USD</p>
-          <p><strong>Status:</strong> {order.status}</p>
-        </div>
-      ) : (
-        <div>Please enter an Order ID to search.</div>
-      )}
-    </div>
+return (
+    <Box sx={{ maxWidth: 600, mx: 'auto', p: 4 }}>
+        <Typography variant="h4" gutterBottom>
+            Order Details
+        </Typography>
+        {/* Container for the search functionality */}
+        <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+            <Box display="flex" alignItems="center" mb={2}>
+                <TextField
+                    id="orderSearch"
+                    label="Search Order ID"
+                    type="text"
+                    value={searchOrderId}
+                    onChange={handleSearchChange}
+                    placeholder="Enter Order ID"
+                    variant="outlined"
+                    sx={{ mr: 2, flexGrow: 1 }}
+                />
+                <Button variant="contained" color="primary" onClick={() => setSearchOrderId(searchOrderId)}>
+                    Search
+                </Button>
+            </Box>
+        </Paper>
+        
+        {/* Conditional rendering based on the fetching state */}
+        {isLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <CircularProgress />
+            </Box>
+        ) : error ? (
+            <Typography color="error">Error: {error}</Typography>
+        ) : order ? (
+            // Display order details if an order is found
+            <Box>
+                <Typography><strong>ID:</strong> {order.id}</Typography>
+                <Typography><strong>Ticker:</strong> {order.ticker}</Typography>
+                <Typography><strong>Number of Shares:</strong> {order.num_shares}</Typography>
+                <Typography><strong>Filled Price Per Share:</strong> {order.filled_price_per_share / 100} USD</Typography>
+                <Typography><strong>Total Cash:</strong> {order.num_shares * order.filled_price_per_share / 100} USD</Typography>
+                <Typography><strong>Status:</strong> {order.status}</Typography>
+            </Box>
+        ) : (
+            <Typography>Please enter an Order ID to search.</Typography>
+        )}
+    </Box>
 );
+
 
 }
 

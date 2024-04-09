@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-import tenPercentMore from '../helpers/tenPercentMore';
+import {tenPercentMore} from '../helpers/percent';
 
 import { Alert, TextField, Button, Typography, Card, CardContent, Table, TableBody, TableCell, TableHead, TableRow, CircularProgress } from '@mui/material';
 

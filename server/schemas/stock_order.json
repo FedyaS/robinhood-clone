@@ -22,11 +22,15 @@
     "num_shares": {
       "type": "integer"
     },
+    "min_price_per_share": {
+      "type": "integer",
+      "description": "Minimum price per share in cents."
+    },
     "max_price_per_share": {
       "type": "integer",
-      "description": "Maximum price in cents"
+      "description": "Maximum price per share in cents."
     },
-    "purchase_price_per_share": {
+    "filled_price_per_share": {
       "type": "integer",
       "description": "Maximum price in cents"
     },
@@ -38,10 +42,14 @@
       "type": "string",
       "enum": ["PROCESSING", "COMPLETED", "CANCELLED"]
     },
+    "subtype": {
+      "type": "string",
+      "enum": ["BUY", "SELL"]
+    },
     "type": {
         "type": "string",
         "const": "STOCK_ORDER"
     }
   },
-  "required": ["PK", "SK", "id", "ticker", "num_shares", "max_price_per_share", "cash_allotted", "status", "type"]
+  "required": ["PK", "SK", "id", "ticker", "num_shares", "cash_allotted", "status", "subtype", "type"]
 }

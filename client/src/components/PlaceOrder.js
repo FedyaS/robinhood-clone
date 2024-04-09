@@ -16,6 +16,7 @@ function StockOrderPage() {
   const defaultTicker = location.state?.ticker || '';
   const defaultNumShares = location.state?.numShares || 1;
   const defaultMaxPrice = location.state?.maxPrice || 0;
+  const isSellOrder = location.state?.sell || false
 
   const [ticker, setTicker] = useState(defaultTicker);
   const [numShares, setNumShares] = useState(defaultNumShares);
@@ -26,24 +27,36 @@ function StockOrderPage() {
   const [successMessage, setSuccessMessage] = useState('');
   const [orderId, setOrderId] = useState(null);
 
+  const sellOrderFetch = () => {
+
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setErrorMsg('');
 
+    const body = {
+      user_id: userID,
+      ticker,
+      num_shares: parseInt(numShares),
+      
+      // SAME VALUE - sell vs order require min vs max, but uses the same form field for now
+      max_price: parseInt(maxPrice),
+      min_price: parseInt(maxPrice),
+      cash_allotted: calcCashDollars(numShares, maxPrice)
+    }
+
+    const url = isSellOrder ? 'http://127.0.0.1:5000/sell' : 'http://127.0.0.1:5000/order'
+
     try {
-      const response = await fetch('http://127.0.0.1:5000/order', {
+      
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          user_id: userID,
-          ticker,
-          num_shares: parseInt(numShares),
-          max_price: parseInt(maxPrice),
-          cash_allotted: calcCashDollars(numShares, maxPrice)
-        }),
+        body: JSON.stringify(body),
       });
 
       const data = await response.json();
@@ -71,7 +84,7 @@ return (
   <Card>
     <CardContent>
       <Typography variant="h4" gutterBottom>
-        Place Stock Order
+        Place {isSellOrder ? 'SELL' : 'BUY'} Order
       </Typography>
       <form onSubmit={handleSubmit}>
         <div>
