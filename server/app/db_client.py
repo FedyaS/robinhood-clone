@@ -1,99 +1,53 @@
 import random
 import string
 import time
-import boto3
 from boto3.dynamodb.conditions import Key
 from decimal import Decimal
-
-# Configure DynamoDB client to use DynamoDB Local
-dynamodb = boto3.resource(
-    'dynamodb',
-    endpoint_url='http://localhost:8000', # DynamoDB Local URL
-    region_name='us-west-2', # Example region
-    aws_access_key_id='dummy', # Dummy credentials for DynamoDB Local
-    aws_secret_access_key='dummy'
-)
-
-# Reference to the FullDB table
-table = dynamodb.Table('FullDB')
-
+from app.constants import dynamodb, table
 
 def generate_id():
     """Generates an 8-letter uppercase ID."""
     return ''.join(random.choices(string.ascii_uppercase, k=8))
 
-def get_user(user_id):
-    # Construct the PK and SK value from the user_id
-    pk = sk = f"USER#{user_id}"
-
+def get_item(pk, sk):
+    print(f'get_item for {pk}, {sk}')
     try:
         # Attempt to get the item from the DynamoDB table
         response = table.get_item(
-            Key={
-                'PK': pk,
-                'SK': sk
-            }
+            Key={'PK': pk, 'SK': sk}
         )
     except Exception as e:
         # Handle potential errors
-        print(f"Error fetching user: {e}")
+        print(f"Error fetching item: {e}")
         return None
 
-    # Check if item was found and return unmarshalled item
     item = response.get('Item', None)
     if item:
         # No need to manually unmarshall; boto3 does it automatically here
         return item
     else:
         return None
+
+
+def get_user(user_id):
+    # Construct the PK and SK value from the user_id
+    pk = sk = f"USER#{user_id}"
+
+    return get_item(pk, sk)
 
 def get_stock_order(user_id, stock_order_id):
     # Construct the PK with the user_id and the SK with the stock_order_id
     pk = f"USER#{user_id}"
     sk = f"STOCK_ORDER#{stock_order_id}"
 
-    try:
-        # Attempt to get the stock order from the DynamoDB table
-        response = table.get_item(
-            Key={
-                'PK': pk,
-                'SK': sk
-            }
-        )
-    except Exception as e:
-        # Handle potential errors
-        print(f"Error fetching stock order: {e}")
-        return None
-
-    # Check if item was found and return unmarshalled item
-    item = response.get('Item', None)
-    if item:
-        # No need to manually unmarshall; boto3 does it automatically here
-        return item
-    else:
-        return None
+    return get_item(pk, sk)
 
 def get_stock(user_id, ticker):
-    try:
-        # Construct the primary key pattern for user and stock
-        pk_value = f"USER#{user_id}"
-        sk_value = f"STOCK#{ticker}"
-        
-        # Query to find the stock item
-        response = response = table.get_item(
-            Key={
-                'PK': pk_value,
-                'SK': sk_value
-            }
-        )
-        
-        item = response.get('Item', None)
-        return item
-    
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        return {"exists": False, "error": {e}}
+    pk = f"USER#{user_id}"
+    sk = f"STOCK#{ticker}"
 
+    return get_item(pk, sk)
+    
 def query_user_info(user_id):
     pk = f"USER#{user_id}"
 
@@ -123,7 +77,6 @@ def query_user_info(user_id):
     else:
         return None
     
-
 def query_user_stock(user_id):
     # Construct the PK value from the user_id
     pk = f"USER#{user_id}"

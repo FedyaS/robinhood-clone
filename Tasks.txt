@@ -1,4 +1,5 @@
 Tasks:
+Just some initial thoughts on the implementation...
 
 Frontend
 ***May want to do Figma mockups for everything first

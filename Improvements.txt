@@ -1,0 +1,5 @@
+UI / UX is very basic
+No Graph, historical price data shows up as a Table
+Order Page should have info about user balance / stock so it can prevent bad orders from being placed
+User Login / Auth
+We should store the detailed stock info locally to avoid making a yfinance call every time

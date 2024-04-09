@@ -1,8 +1,0 @@
-Tasks Remaining:
-
-Test the Endpoints
-Make the Sell Endpoint
-Make the HomePage
-Make the TickerPage
-Make the Buy/Sell Page
-Make the Order loading Page

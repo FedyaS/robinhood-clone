@@ -8,7 +8,7 @@ You will need Node, Python, and Docker for everything to work.
 ## first-time setup
 ### Setup Python
 1. `cd server`
-1. `python -m venv`
+1. `python3 -m venv venv`
 1. Windows - `venv\Scripts\activate.bat` OR Mac - `source venv/bin/activate`
 1. `pip3 install -r requirements.txt`
 
@@ -20,8 +20,8 @@ You will need Node, Python, and Docker for everything to work.
 1. `docker pull amazon/dynamodb-local`
 1. `docker run -p 8000:8000 amazon/dynamodb-local -jar DynamoDBLocal.jar -sharedDb`
 1. `cd ./ddb_scripts` (from the Project Directory)
-1. `python3 create_ddb.py` (with Venv)
-1. `python3 put.py`
+1. `python3 create_ddb.py` (with Venv) - this creates a Table Named FullDB which is used by the Flask App
+1. `python3 put.py` - This puts a default user item
 
 ## running
 Client:
