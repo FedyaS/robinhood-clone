@@ -3,7 +3,6 @@ import string
 import time
 import boto3
 from boto3.dynamodb.conditions import Key
-from boto3.dynamodb.conditions import Attr
 from decimal import Decimal
 
 # Configure DynamoDB client to use DynamoDB Local
@@ -96,7 +95,6 @@ def get_stock(user_id, ticker):
         return {"exists": False, "error": {e}}
 
 
-
 def query_user_stock(user_id):
     # Construct the PK value from the user_id
     pk = f"USER#{user_id}"
@@ -124,7 +122,7 @@ def put_order(user_id, order_id, ticker, num_shares, max_price, cash_allotted):
     client = dynamodb.meta.client
     user_pk = f'USER#{user_id}'
     stock_order_sk = f'STOCK_ORDER#{order_id}'
-    
+
     order = {
         "PK": user_pk,
         "SK": stock_order_sk,
@@ -140,45 +138,31 @@ def put_order(user_id, order_id, ticker, num_shares, max_price, cash_allotted):
     
     try:
         # Start a transaction
-        response = client.transact_write_items(
+        client.transact_write_items(
             TransactItems=[
                 {
                     'Put': {
                         'TableName': 'FullDB',
-                        'Item': {
-                            'PK': {'S': order['PK']},
-                            'SK': {'S': order['SK']},
-                            'id': {'S': order['id']},
-                            'ticker': {'S': order['ticker']},
-                            'num_shares': {'N': str(order['num_shares'])},
-                            'max_price_per_share': {'N': str(order['max_price_per_share'])},
-                            'cash_allotted': {'N': str(order['cash_allotted'])},
-                            'purchase_price_per_share': {'N': str(order['purchase_price_per_share'])},
-                            'status': {'S': order['status']},
-                            'type': {'S': order['type']}
-                        }
+                        'Item': order
                     }
                 },
                 {
                     'Update': {
                         'TableName': 'FullDB',
                         'Key': {
-                            'PK': {'S': user_pk},
-                            'SK': {'S': user_pk}
+                            'PK': user_pk,
+                            'SK': user_pk
                         },
                         'UpdateExpression': 'SET cash = cash - :ca',
                         'ConditionExpression': 'cash >= :ca',
                         'ExpressionAttributeValues': {
-                            ':ca': {'N': str(cash_allotted)}
+                            ':ca': cash_allotted
                         },
                         'ReturnValuesOnConditionCheckFailure': 'ALL_OLD'
                     }
                 }
             ]
         )
-    except client.exceptions.TransactionCanceledException as e:
-        print(f"Transaction failed: {e}")
-        return None
     except Exception as e:
         print(f"Error processing order: {e}")
         return None
@@ -188,6 +172,50 @@ def put_order(user_id, order_id, ticker, num_shares, max_price, cash_allotted):
 def cancel_order(user_id, order_id, cash_allotted):
     # Add the cash_allotted back into the user object cash field
     # Update the order object status to CANCELLED
+
+    client = dynamodb.meta.client
+    user_pk = f"USER#{user_id}"
+    order_sk = f"STOCK_ORDER#{order_id}"
+
+    update_user = {
+        'Update': {
+            'TableName': 'FullDB',
+            'Key': {
+                'PK': user_pk,
+                'SK': user_pk
+            },
+            'UpdateExpression': 'SET cash = cash + :cashReturned',
+            'ExpressionAttributeValues': {
+                ':cashReturned': Decimal(cash_allotted)
+            }
+        }
+    }
+
+    update_stock_order = {
+        'Update': {
+            'TableName': 'FullDB',
+            'Key': {
+                'PK': user_pk,
+                'SK': order_sk
+            },
+            'UpdateExpression': 'SET #status = :cancelledStatus',
+            'ExpressionAttributeValues': {
+                ':cancelledStatus': 'CANCELLED'
+            },
+            'ExpressionAttributeNames': {
+                '#status': 'status'
+            }
+        }
+    }
+ 
+    operations = [update_user, update_stock_order]
+    try:
+        client.transact_write_items(
+            TransactItems=operations
+        )
+        print("Transaction successful.")
+    except Exception as e:
+        print(f"Transaction failed: {e}")
 
     return
 
@@ -220,9 +248,13 @@ def finish_order(user_id, order_id, returned_cash, ticker, last_price, num_share
                 'PK': user_pk,
                 'SK': order_sk
             },
-            'UpdateExpression': 'SET status = :statusCompleted',
+            'UpdateExpression': 'SET #status = :statusCompleted, purchase_price_per_share = :lastPrice',
             'ExpressionAttributeValues': {
-                ':statusCompleted': 'COMPLETED'
+                ':statusCompleted': 'COMPLETED',
+                ':lastPrice': last_price
+            },
+            'ExpressionAttributeNames': {
+                '#status': 'status'
             }
         }
     }
@@ -239,10 +271,10 @@ def finish_order(user_id, order_id, returned_cash, ticker, last_price, num_share
                     'PK': f"USER#{user_id}",
                     'SK': f"STOCK#{ticker}"
                 },
-                'UpdateExpression': 'SET amount = amount + :numShares, purchase_price = :lastPrice',
+                'UpdateExpression': 'SET num_shares = num_shares + :numShares, last_price = :lastPrice',
                 'ExpressionAttributeValues': {
-                    ':numShares': Decimal(num_shares),  # Assuming num_shares is defined
-                    ':lastPrice': Decimal(last_price)  # Assuming last_price is defined
+                    ':numShares': num_shares,
+                    ':lastPrice': last_price
                 },
                 'ReturnValues': 'UPDATED_NEW'
             }
@@ -258,9 +290,9 @@ def finish_order(user_id, order_id, returned_cash, ticker, last_price, num_share
                     'SK': f"STOCK#{ticker}",
                     'user_id': user_id,
                     'ticker': ticker,
-                    'purchase_price': Decimal(last_price),  # Assuming last_price is defined
-                    'amount': Decimal(num_shares),  # Assuming num_shares is defined
-                    'datetime': time.time(),  # Use the current datetime in an appropriate format
+                    'num_shares': num_shares,
+                    'last_price': last_price,
+                    'datetime': Decimal(time.time()),
                     'type': 'STOCK'
                 }
             }
@@ -275,7 +307,4 @@ def finish_order(user_id, order_id, returned_cash, ticker, last_price, num_share
         print("Transaction successful.")
     except Exception as e:
         print(f"Transaction failed: {e}")
-
-# Example of how to call the function:
-# finish_order('USERID123', 'ORDERID123', 10000, 'AAPL', 150, 10)
 

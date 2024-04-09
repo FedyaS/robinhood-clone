@@ -19,9 +19,9 @@
       "type": "string",
       "enum": ["AAPL"]
     },
-    "purchase_price": {
+    "last_price": {
       "type": "integer",
-      "description": "Price in cents"
+      "description": "The last reported price per share in cents"
     },
     "num_shares": {
       "type": "integer"
@@ -34,5 +34,5 @@
         "const": "STOCK"
     }
   },
-  "required": ["PK", "SK", "id", "user_id", "ticker", "purchase_price", "amount", "datetime", "type"]
+  "required": ["PK", "SK", "id", "user_id", "ticker", "last_price", "amount", "datetime", "type"]
 }

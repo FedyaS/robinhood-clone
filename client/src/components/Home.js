@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { UserContext } from "../contexts/UserContext";
 
 const UserProfile = ({ }) => {
-  const userId = 'ABCDEFGH'
+  const { userID } = useContext(UserContext);
   const [userData, setUserData] = useState(null);
   const [stocksData, setStocksData] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetch(`http://127.0.0.1:5000/home?user_id=${userId}`);
+      const response = await fetch(`http://127.0.0.1:5000/home?user_id=${userID}`);
       const data = await response.json();
 
       if (data.user) {
@@ -19,7 +20,7 @@ const UserProfile = ({ }) => {
     };
 
     fetchData();
-  }, [userId]);
+  }, [userID]);
 
   if (!userData) {
     return <div>Loading...</div>;
@@ -35,7 +36,7 @@ const UserProfile = ({ }) => {
       <ul>
         {stocksData.map((stock, index) => (
           <li key={index}>
-            Ticker: {stock.ticker}, Shares: {stock.num_shares}, Purchase Price: ${stock.purchase_price / 100}
+            Ticker: {stock.ticker}, Shares: {stock.num_shares}, Value: ${stock.num_shares * stock.last_price / 100}
           </li>
         ))}
       </ul>

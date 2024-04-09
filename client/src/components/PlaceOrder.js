@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { UserContext } from "../contexts/UserContext";
 
 function StockOrderPage() {
-  const [userId, setUserId] = useState('');
+  const {userID} = useContext(UserContext);
+  
   const [ticker, setTicker] = useState('');
   const [numShares, setNumShares] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
@@ -21,7 +23,7 @@ function StockOrderPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          user_id: userId,
+          user_id: userID,
           ticker,
           num_shares: parseInt(numShares),
           max_price: parseInt(maxPrice),
@@ -51,13 +53,6 @@ return (
     <h1>Place Stock Order</h1>
     <form onSubmit={handleSubmit}>
       <div>
-        <label htmlFor="userId">User ID:</label>
-        <input
-          type="text"
-          id="userId"
-          value={userId}
-          onChange={(e) => setUserId(e.target.value)}
-        />
       </div>
       <div>
         <label htmlFor="ticker">Ticker:</label>

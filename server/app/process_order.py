@@ -14,7 +14,7 @@ def process_order(user_id, order_id, ticker, num_shares, max_price, cash_allotte
         money_spent = last_price * num_shares
         money_difference = cash_allotted - money_spent
 
-        db_client.finish_order(user_id, order_id, money_difference, ticker, last_price, num_shares)
+        db_client.finish_order(user_id, order_id, int(money_difference), ticker, last_price, num_shares)
     
     else:
         print(f"Cancelled Order {order_id} as {last_price} exceeds {max_price}")
