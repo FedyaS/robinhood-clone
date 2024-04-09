@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { TextField, Button, Typography, Card, CardContent, CircularProgress } from '@mui/material';
 
 import { UserContext } from "../contexts/UserContext";
@@ -10,11 +10,16 @@ function calcCashDollars(numShares, price) {
 
 function StockOrderPage() {
   const {userID} = useContext(UserContext);
+  const location = useLocation();
   const navigate = useNavigate();
 
-  const [ticker, setTicker] = useState('');
-  const [numShares, setNumShares] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
+  const defaultTicker = location.state?.ticker || '';
+  const defaultNumShares = location.state?.numShares || 1;
+  const defaultMaxPrice = location.state?.maxPrice || 0;
+
+  const [ticker, setTicker] = useState(defaultTicker);
+  const [numShares, setNumShares] = useState(defaultNumShares);
+  const [maxPrice, setMaxPrice] = useState(defaultMaxPrice);
 
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -90,11 +95,14 @@ return (
             label="Max Price ($)"
             type="number"
             id="maxPrice"
-            value={maxPrice}
-            onChange={(e) => setMaxPrice(e.target.value)}
+            value={maxPrice / 100} // Display the cents value as dollars
+            onChange={(e) => setMaxPrice(Math.round(e.target.value * 100))} // Convert dollars to cents when input changes
             variant="outlined"
             margin="normal"
             fullWidth
+            InputProps={{
+              step: "0.01" // Allows decimal inputs to represent cents
+            }}
           />
           {numShares && maxPrice && (
             <Typography variant="body2" style={{ marginTop: '10px' }}>

@@ -3,10 +3,14 @@ from flask_cors import CORS
 import app.ticker_data as ticker_data
 import app.db_client as db_client
 import app.process_order as process_order
+import app.constants as constants
 import threading
 
 main = Blueprint('main', __name__)
 CORS(main)
+
+def ticker_exists(ticker):
+    return ticker in constants.ALL_TICKERS
 
 @main.route('/')
 def index():
@@ -39,6 +43,9 @@ def ticker():
     # Assuming the ticker symbol is passed as a query parameter
     ticker_symbol = request.args.get('symbol', default='AAPL', type=str)
 
+    if not ticker_exists(ticker_symbol):
+        return jsonify({"error": "Invalid ticker. Please try again."}), 400
+
     data = ticker_data.get_ticker_data(ticker_symbol)
 
     return jsonify(data)
@@ -49,6 +56,11 @@ def ticker_price():
     print('/ticker-price called')
 
     ticker_symbol = request.args.get('symbol', default='AAPL', type=str)
+
+    if not ticker_exists(ticker_symbol):
+        return jsonify({"error": "Invalid ticker. Please try again."}), 400
+
+
     data = ticker_data.get_ticker_price(ticker_symbol)
 
     return jsonify(data)
@@ -70,6 +82,8 @@ def order():
         if any(var is None for var in [user_id, ticker, num_shares, max_price, cash_allotted]):
             return jsonify({"error": "Some data missing in your order request. Please try again."}), 400
         
+        if not ticker_exists(ticker):
+            return jsonify({"error": "Invalid ticker. Please try again."}), 400
 
         # Confirm that User has sufficient funds
         user = db_client.get_user(user_id)
