@@ -4,3 +4,6 @@ Order Page should have info about user balance / stock so it can prevent bad ord
 User Login / Auth
 We should store the detailed stock info locally to avoid making a yfinance call every time
 We should validate against schema, especiall for db writes
+
+Requests - 
+Add chart for stock price over time

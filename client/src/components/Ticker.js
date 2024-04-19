@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 import {tenPercentMore} from '../helpers/percent';
 
 import { Alert, TextField, Button, Typography, Card, CardContent, Table, TableBody, TableCell, TableHead, TableRow, CircularProgress } from '@mui/material';
 
+import PriceChart from './Chart'
 
 // A basic array of common ticker symbols for suggestions
 const COMMON_TICKERS = ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'FB'];
@@ -44,6 +45,20 @@ const TickerSearch = () => {
       setLoading(false);
     }
   };
+
+    const formattedData = useMemo(() => {
+    if (!tickerData || !tickerData.history_price) return [];
+
+    return tickerData.history_price.map(item => ({
+      Date: item.Date,
+      Open: item.Open / 100,
+      High: item.High / 100,
+      Low: item.Low / 100,
+      Close: item.Close / 100,
+      Volume: item.Volume
+    }));
+  }, [tickerData]);
+  console.log(formattedData)
 
   // Fetch ticker right away if passed in
   useEffect(() => {
@@ -112,7 +127,7 @@ const TickerSearch = () => {
               <Typography variant="h6" style={{marginTop: '20px'}}>
                 Historical Prices
               </Typography>
-              <Table size="small">
+              {/* <Table size="small">
                 <TableHead>
                   <TableRow>
                     <TableCell>Date</TableCell>
@@ -135,7 +150,9 @@ const TickerSearch = () => {
                     </TableRow>
                   ))}
                 </TableBody>
-              </Table>
+              </Table> */}
+                <PriceChart data={formattedData}></PriceChart>
+
             </CardContent>
           </Card>
         )}
